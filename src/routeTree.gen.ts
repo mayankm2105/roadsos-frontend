@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TriageRouteImport } from './routes/triage'
+import { Route as SosRouteImport } from './routes/sos'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TriageRoute = TriageRouteImport.update({
   id: '/triage',
   path: '/triage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SosRoute = SosRouteImport.update({
+  id: '/sos',
+  path: '/sos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/chat': typeof ChatRoute
   '/services': typeof ServicesRoute
+  '/sos': typeof SosRoute
   '/triage': typeof TriageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/chat': typeof ChatRoute
   '/services': typeof ServicesRoute
+  '/sos': typeof SosRoute
   '/triage': typeof TriageRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/chat': typeof ChatRoute
   '/services': typeof ServicesRoute
+  '/sos': typeof SosRoute
   '/triage': typeof TriageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/chat' | '/services' | '/triage'
+  fullPaths: '/' | '/chat' | '/services' | '/sos' | '/triage'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chat' | '/services' | '/triage'
-  id: '__root__' | '/' | '/chat' | '/services' | '/triage'
+  to: '/' | '/chat' | '/services' | '/sos' | '/triage'
+  id: '__root__' | '/' | '/chat' | '/services' | '/sos' | '/triage'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChatRoute: typeof ChatRoute
   ServicesRoute: typeof ServicesRoute
+  SosRoute: typeof SosRoute
   TriageRoute: typeof TriageRoute
 }
 
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/triage'
       fullPath: '/triage'
       preLoaderRoute: typeof TriageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sos': {
+      id: '/sos'
+      path: '/sos'
+      fullPath: '/sos'
+      preLoaderRoute: typeof SosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChatRoute: ChatRoute,
   ServicesRoute: ServicesRoute,
+  SosRoute: SosRoute,
   TriageRoute: TriageRoute,
 }
 export const routeTree = rootRouteImport

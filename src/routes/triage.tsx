@@ -174,7 +174,7 @@ function Triage() {
                         key={opt}
                         onClick={() => answer(opt)}
                         disabled={loading}
-                        className="press flex h-13 w-full items-center rounded-pill px-5 py-3.5 text-left text-[15px] font-medium text-foreground disabled:opacity-60"
+                        className="press flex h-[52px] w-full items-center rounded-pill px-5 py-3.5 text-left text-[15px] font-medium text-foreground disabled:opacity-60"
                         style={{
                           background: active
                             ? "rgba(31,71,136,0.2)"
