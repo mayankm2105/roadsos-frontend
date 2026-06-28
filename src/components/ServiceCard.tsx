@@ -6,8 +6,19 @@ import {
   formatDriveTime,
 } from "@/lib/roadsos";
 
-function dialHref(phone?: string) {
-  return phone ? `tel:${phone.replace(/\s+/g, "")}` : "tel:108";
+function getCallHref(phone: string | null | undefined, category: string): string {
+  if (phone && phone.trim() !== "") {
+    return `tel:${phone.replace(/[\s\-]/g, "")}`;
+  }
+  const categoryDefaults: Record<string, string> = {
+    police: "100",
+    hospital: "108",
+    ambulance: "108",
+    towing: "",
+    mechanic: "",
+  };
+  const defaultNumber = categoryDefaults[category?.toLowerCase()] || "";
+  return defaultNumber ? `tel:${defaultNumber}` : "#";
 }
 
 function directionsHref(s: EmergencyService) {
@@ -22,6 +33,8 @@ function directionsHref(s: EmergencyService) {
 export function ServiceCard({ service }: { service: EmergencyService }) {
   const color = CATEGORY_COLOR[service.category] ?? "var(--accent-blue)";
   const isLive = (service.source ?? "live") === "live";
+  const callHref = getCallHref(service.phone, service.category);
+  const isCallDisabled = callHref === "#";
 
   return (
     <div className="mb-2 rounded-lg border border-line bg-surface p-4">
@@ -74,9 +87,15 @@ export function ServiceCard({ service }: { service: EmergencyService }) {
 
         <div className="flex shrink-0 items-center gap-2">
           <a
-            href={dialHref(service.phone)}
-            aria-label={`Call ${service.name}`}
-            className="press flex h-10 w-10 items-center justify-center rounded-full"
+            href={callHref}
+            aria-label={isCallDisabled ? "No phone number available" : `Call ${service.name}`}
+            title={isCallDisabled ? "No phone number available" : undefined}
+            onClick={(e) => {
+              if (isCallDisabled) e.preventDefault();
+            }}
+            className={`flex h-10 w-10 items-center justify-center rounded-full ${
+              isCallDisabled ? "opacity-50 cursor-not-allowed" : "press"
+            }`}
             style={{ background: "rgba(34,197,94,0.15)" }}
           >
             <Phone size={18} color="var(--accent-green)" />

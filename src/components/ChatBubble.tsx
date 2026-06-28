@@ -71,7 +71,29 @@ export function ChatBubble({
                 </p>
               </div>
               <a
-                href={s.phone ? `tel:${s.phone}` : "tel:108"}
+                href={(() => {
+                  if (s.phone && s.phone.trim() !== "") {
+                    return `tel:${s.phone.replace(/[\s\-]/g, "")}`;
+                  }
+                  const defaults: Record<string, string> = {
+                    police: "100",
+                    hospital: "108",
+                    ambulance: "108",
+                    towing: "",
+                    mechanic: "",
+                  };
+                  const cat = (s as any).category?.toLowerCase() || "";
+                  const fallback = defaults[cat] || "";
+                  return fallback ? `tel:${fallback}` : "#";
+                })()}
+                onClick={(e) => {
+                  if (!s.phone && !["police","hospital","ambulance"].includes(
+                    (s as any).category?.toLowerCase() || ""
+                  )) {
+                    e.preventDefault();
+                    alert("No phone number available for this service.");
+                  }
+                }}
                 className="press flex h-9 w-9 items-center justify-center rounded-full"
                 style={{ background: "rgba(34,197,94,0.15)" }}
               >
