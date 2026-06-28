@@ -7,13 +7,20 @@ import {
   MapPin,
 } from "lucide-react";
 
-const TABS = [
+type Tab = {
+  to: "/" | "/chat" | "/triage" | "/sos" | "/services";
+  label: string;
+  Icon: typeof House;
+  sos?: boolean;
+};
+
+const TABS: Tab[] = [
   { to: "/", label: "Home", Icon: House },
   { to: "/chat", label: "Chat", Icon: MessageCircle },
   { to: "/triage", label: "Triage", Icon: HeartPulse },
   { to: "/sos", label: "SOS", Icon: TriangleAlert, sos: true },
   { to: "/services", label: "Services", Icon: MapPin },
-] as const;
+];
 
 export function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
