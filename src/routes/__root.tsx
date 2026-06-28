@@ -145,8 +145,44 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AppShell />
     </QueryClientProvider>
+  );
+}
+
+function AppShell() {
+  // Mount GPS watcher once for the whole app.
+  useGPS();
+  const setOnline = useAppStore((s) => s.setOnline);
+
+  useEffect(() => {
+    let active = true;
+    const check = async () => {
+      const res = await api.health();
+      if (active) setOnline(!res.error);
+    };
+    check();
+    const id = setInterval(check, 30000);
+
+    const onNet = () => setOnline(navigator.onLine);
+    window.addEventListener("online", onNet);
+    window.addEventListener("offline", onNet);
+
+    return () => {
+      active = false;
+      clearInterval(id);
+      window.removeEventListener("online", onNet);
+      window.removeEventListener("offline", onNet);
+    };
+  }, [setOnline]);
+
+  return (
+    <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
+      <main className="flex-1 pb-[72px]">
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+      </main>
+      <BottomNav />
+    </div>
   );
 }
