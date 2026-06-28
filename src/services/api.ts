@@ -66,14 +66,14 @@ export const api = {
     const r = await request<unknown>(
       `/services/nearby?lat=${loc.lat}&lng=${loc.lng}`,
     );
-    return r.error ? r : { data: extractServices(r.data) };
+    return r.error ? { error: r.error } : { data: extractServices(r.data) };
   },
 
   async police(loc: GeoLocation): Promise<ApiResult<EmergencyService[]>> {
     const r = await request<unknown>(
       `/services/police?lat=${loc.lat}&lng=${loc.lng}`,
     );
-    return r.error ? r : { data: extractServices(r.data) };
+    return r.error ? { error: r.error } : { data: extractServices(r.data) };
   },
 
   async hospitals(
@@ -83,14 +83,14 @@ export const api = {
     const r = await request<unknown>(
       `/services/hospitals?lat=${loc.lat}&lng=${loc.lng}&trauma_only=${traumaOnly}`,
     );
-    return r.error ? r : { data: extractServices(r.data) };
+    return r.error ? { error: r.error } : { data: extractServices(r.data) };
   },
 
   async ambulances(loc: GeoLocation): Promise<ApiResult<EmergencyService[]>> {
     const r = await request<unknown>(
       `/services/ambulances?lat=${loc.lat}&lng=${loc.lng}`,
     );
-    return r.error ? r : { data: extractServices(r.data) };
+    return r.error ? { error: r.error } : { data: extractServices(r.data) };
   },
 
   chatMessage: (payload: {
