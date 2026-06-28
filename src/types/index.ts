@@ -25,7 +25,7 @@ export interface EmergencyService {
   phone?: string;
   lat?: number;
   lng?: number;
-  distance_km?: number;
+  distance_m?: number;
   drive_time_min?: number;
   trauma_centre?: boolean;
   source?: "live" | "cached" | string;

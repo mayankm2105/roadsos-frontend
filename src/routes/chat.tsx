@@ -85,9 +85,7 @@ function Chat() {
     });
 
     const reply =
-      res.data?.reply ??
-      res.data?.message ??
-      res.data?.response ??
+      res.data?.reply?.text ??
       (res.error
         ? "I couldn't reach the assistant. For urgent help call 108 now."
         : "I'm here to help.");
@@ -113,12 +111,11 @@ function Chat() {
         stream.getTracks().forEach((t) => t.stop());
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         const form = new FormData();
-        form.append("file", blob, "voice.webm");
+        form.append("audio", blob, "recording.wav");
         form.append("session_id", sessionId);
         form.append("lang", lang);
         if (location) {
-          form.append("lat", String(location.lat));
-          form.append("lng", String(location.lng));
+          form.append("location", JSON.stringify({ lat: location.lat, lng: location.lng }));
         }
         setSending(true);
         pushTyping();

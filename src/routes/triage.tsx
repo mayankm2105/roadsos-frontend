@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, TriangleAlert, Phone } from "lucide-react";
 
@@ -63,6 +63,16 @@ function Triage() {
     setSelected(null);
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (state && state.severity_score >= 8 && location && !state.recommended_service) {
+      api.hospitals(location, true).then((res) => {
+        if (res.data && res.data.length > 0) {
+          setState((prev) => (prev ? { ...prev, recommended_service: res.data[0] } : prev));
+        }
+      });
+    }
+  }, [state?.severity_score, location, state?.recommended_service]);
 
   const score = state?.severity_score ?? 0;
   const qNum = state?.question_number ?? 1;

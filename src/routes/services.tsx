@@ -38,7 +38,7 @@ function Services() {
   const [tab, setTab] = useState<"all" | ServiceCategory>("all");
   const [traumaOnly, setTraumaOnly] = useState(false);
 
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const { data, isLoading, isError, error, refetch, isRefetching } = useQuery({
     queryKey: ["services", tab, traumaOnly, location?.lat, location?.lng],
     queryFn: async (): Promise<EmergencyService[]> => {
       if (!location) return [];
@@ -46,7 +46,11 @@ function Services() {
       if (tab === "police") res = await api.police(location);
       else if (tab === "hospital") res = await api.hospitals(location, traumaOnly);
       else if (tab === "ambulance") res = await api.ambulances(location);
+      else if (tab === "towing") res = await api.towing(location);
+      else if (tab === "mechanic") res = await api.mechanics(location);
       else res = await api.servicesNearby(location);
+      
+      if (res.error) throw new Error(res.error);
       return res.data ?? [];
     },
     enabled: !!location,
@@ -130,6 +134,10 @@ function Services() {
             {Array.from({ length: 5 }).map((_, i) => (
               <ServiceCardSkeleton key={i} />
             ))}
+          </div>
+        ) : isError ? (
+          <div className="bg-red-950 border border-red-800 rounded-xl p-4 text-red-300 text-sm">
+            {error instanceof Error ? error.message : "Failed to load services."} <button onClick={() => refetch()} className="underline ml-2">Retry</button>
           </div>
         ) : list.length > 0 ? (
           list.map((s) => <ServiceCard key={s.id} service={s} />)

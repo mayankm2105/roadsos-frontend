@@ -62,9 +62,9 @@ export const CATEGORY_COLOR: Record<string, string> = {
   mechanic: "var(--accent-yellow)",
 };
 
-export function formatDistance(km?: number): string {
-  if (km == null) return "—";
-  return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+export function formatDistance(m?: number): string {
+  if (m == null) return "—";
+  return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`;
 }
 
 export function formatDriveTime(min?: number): string {

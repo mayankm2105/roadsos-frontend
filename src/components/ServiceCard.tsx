@@ -52,7 +52,7 @@ export function ServiceCard({ service }: { service: EmergencyService }) {
           )}
           <div className="mt-1 flex items-center gap-3">
             <span className="text-xs" style={{ color: "var(--accent-green)" }}>
-              {formatDistance(service.distance_km)}
+              {formatDistance(service.distance_m)}
               {service.drive_time_min != null &&
                 ` · ${formatDriveTime(service.drive_time_min)}`}
             </span>

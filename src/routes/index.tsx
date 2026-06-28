@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -40,10 +40,15 @@ function Home() {
   const location = useAppStore((s) => s.location);
   const { t } = useTranslation();
 
-  const { data: services, isLoading } = useQuery({
+  useEffect(() => {
+    api.health().then((res) => console.log("Health check:", res));
+  }, []);
+
+  const { data: services, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["nearby", location?.lat, location?.lng],
     queryFn: async () => {
       const res = await api.servicesNearby(location!);
+      if (res.error) throw new Error(res.error);
       return res.data ?? [];
     },
     enabled: !!location,
@@ -155,6 +160,10 @@ function Home() {
               <ServiceTileSkeleton />
               <ServiceTileSkeleton />
               <ServiceTileSkeleton />
+            </div>
+          ) : isError ? (
+            <div className="bg-red-950 border border-red-800 rounded-xl p-4 text-red-300 text-sm">
+              {error instanceof Error ? error.message : "Failed to load services."} <button onClick={() => refetch()} className="underline ml-2">Retry</button>
             </div>
           ) : services && services.length > 0 ? (
             <div className="space-y-2">

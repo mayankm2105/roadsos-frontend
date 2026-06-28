@@ -1,3 +1,4 @@
+import axios from 'axios';
 import type {
   EmergencyService,
   GeoLocation,
@@ -8,47 +9,42 @@ import type {
 } from "@/types";
 
 const BASE_URL =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  "https://roadsos-backend.onrender.com/api/v1";
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://roadsos-backend-sjbc.onrender.com/api/v1";
+
+const apiClient = axios.create({
+  baseURL: BASE_URL,
+  timeout: 30000, // 30 seconds (Whisper can be slow)
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 export interface ApiResult<T> {
-  data?: T;
-  error?: string;
-}
-
-async function request<T>(
-  path: string,
-  options?: RequestInit,
-): Promise<ApiResult<T>> {
-  try {
-    const res = await fetch(`${BASE_URL}${path}`, {
-      headers:
-        options?.body instanceof FormData
-          ? undefined
-          : { "Content-Type": "application/json" },
-      ...options,
-    });
-    if (!res.ok) {
-      return { error: `Request failed (${res.status})` };
-    }
-    const data = (await res.json()) as T;
-    return { data };
-  } catch (err) {
-    return {
-      error: err instanceof Error ? err.message : "Network error",
-    };
-  }
+  data: T | null;
+  error: string | null;
 }
 
 /** Normalise the many shapes a services endpoint might return into a flat list. */
-function extractServices(raw: unknown): EmergencyService[] {
+function extractServices(raw: any): EmergencyService[] {
   if (!raw) return [];
   if (Array.isArray(raw)) return raw as EmergencyService[];
-  const obj = raw as Record<string, unknown>;
+  const obj = raw as Record<string, any>;
+  
+  // If we have a key like 'results' that contains an object of arrays
   for (const key of ["services", "results", "data", "items"]) {
-    if (Array.isArray(obj[key])) return obj[key] as EmergencyService[];
+    const val = obj[key];
+    if (Array.isArray(val)) return val as EmergencyService[];
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      const merged: EmergencyService[] = [];
+      for (const subVal of Object.values(val)) {
+        if (Array.isArray(subVal)) merged.push(...(subVal as EmergencyService[]));
+      }
+      if (merged.length > 0) return merged;
+    }
   }
-  // category-keyed object e.g. { police: [], hospitals: [] }
+
+  // category-keyed object at root e.g. { police: [], hospitals: [] }
   const merged: EmergencyService[] = [];
   for (const value of Object.values(obj)) {
     if (Array.isArray(value)) merged.push(...(value as EmergencyService[]));
@@ -57,92 +53,161 @@ function extractServices(raw: unknown): EmergencyService[] {
 }
 
 export const api = {
-  health: () => request<{ status?: string }>("/health"),
+  health: async () => {
+    try {
+      const response = await apiClient.get<{ status?: string }>("/health");
+      return { data: response.data, error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
+  },
 
-  i18n: (lang: Lang) =>
-    request<Record<string, string>>(`/i18n/strings?lang=${lang}`),
+  i18n: async (lang: Lang) => {
+    try {
+      const response = await apiClient.get<Record<string, string>>(`/i18n/strings?lang=${lang}`);
+      return { data: response.data, error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
+  },
 
   async servicesNearby(loc: GeoLocation): Promise<ApiResult<EmergencyService[]>> {
-    const r = await request<unknown>(
-      `/services/nearby?lat=${loc.lat}&lng=${loc.lng}`,
-    );
-    return r.error ? { error: r.error } : { data: extractServices(r.data) };
+    try {
+      const response = await apiClient.get(`/services/nearby?lat=${loc.lat}&lng=${loc.lng}`);
+      return { data: extractServices(response.data), error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
   },
 
   async police(loc: GeoLocation): Promise<ApiResult<EmergencyService[]>> {
-    const r = await request<unknown>(
-      `/services/police?lat=${loc.lat}&lng=${loc.lng}`,
-    );
-    return r.error ? { error: r.error } : { data: extractServices(r.data) };
+    try {
+      const response = await apiClient.get(`/services/police?lat=${loc.lat}&lng=${loc.lng}`);
+      return { data: extractServices(response.data), error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
   },
 
   async hospitals(
     loc: GeoLocation,
     traumaOnly = false,
   ): Promise<ApiResult<EmergencyService[]>> {
-    const r = await request<unknown>(
-      `/services/hospitals?lat=${loc.lat}&lng=${loc.lng}&trauma_only=${traumaOnly}`,
-    );
-    return r.error ? { error: r.error } : { data: extractServices(r.data) };
+    try {
+      const response = await apiClient.get(`/services/hospitals?lat=${loc.lat}&lng=${loc.lng}&trauma_only=${traumaOnly}`);
+      return { data: extractServices(response.data), error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
   },
 
   async ambulances(loc: GeoLocation): Promise<ApiResult<EmergencyService[]>> {
-    const r = await request<unknown>(
-      `/services/ambulances?lat=${loc.lat}&lng=${loc.lng}`,
-    );
-    return r.error ? { error: r.error } : { data: extractServices(r.data) };
+    try {
+      const response = await apiClient.get(`/services/ambulances?lat=${loc.lat}&lng=${loc.lng}`);
+      return { data: extractServices(response.data), error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
   },
 
-  chatMessage: (payload: {
+  async towing(loc: GeoLocation): Promise<ApiResult<EmergencyService[]>> {
+    try {
+      const response = await apiClient.get(`/services/towing?lat=${loc.lat}&lng=${loc.lng}`);
+      return { data: extractServices(response.data), error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
+  },
+
+  async mechanics(loc: GeoLocation): Promise<ApiResult<EmergencyService[]>> {
+    try {
+      const response = await apiClient.get(`/services/mechanics?lat=${loc.lat}&lng=${loc.lng}`);
+      return { data: extractServices(response.data), error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
+  },
+
+  chatMessage: async (payload: {
     session_id: string;
     message: string;
     location: GeoLocation;
     lang: Lang;
-  }) =>
-    request<{
-      reply?: string;
-      message?: string;
-      response?: string;
-      suggestions?: string[];
-      services?: EmergencyService[];
-    }>("/chat/message", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+  }) => {
+    try {
+      const response = await apiClient.post<{
+        reply?: { text: string };
+        intent?: string;
+        services?: EmergencyService[];
+        session_id?: string;
+        suggested_actions?: string[];
+      }>("/chat/message", payload);
+      return { data: response.data, error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
+  },
 
-  chatVoice: (form: FormData) =>
-    request<{ reply?: string; transcript?: string }>("/chat/voice", {
-      method: "POST",
-      body: form,
-    }),
+  chatVoice: async (form: FormData) => {
+    try {
+      const response = await apiClient.post<{ reply?: string; transcript?: string }>("/chat/voice", form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return { data: response.data, error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
+  },
 
-  triageStart: (payload: {
+  triageStart: async (payload: {
     injury_description: string;
     location: GeoLocation;
     lang: Lang;
-  }) =>
-    request<TriageState>("/triage/start", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+  }) => {
+    try {
+      const response = await apiClient.post<TriageState>("/triage/start", payload);
+      return { data: response.data, error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
+  },
 
-  triageAnswer: (payload: { triage_id: string; answer: string }) =>
-    request<TriageState>("/triage/answer", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+  triageAnswer: async (payload: { triage_id: string; answer: string }) => {
+    try {
+      const response = await apiClient.post<TriageState>("/triage/answer", payload);
+      return { data: response.data, error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
+  },
 
-  sosCreate: (payload: {
+  sosCreate: async (payload: {
     lat: number;
     lng: number;
     description: string;
     severity: Severity;
     reporter_name?: string;
-  }) =>
-    request<SOSResult & Record<string, unknown>>("/sos/create", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+  }) => {
+    try {
+      const response = await apiClient.post<SOSResult & Record<string, any>>("/sos/create", payload);
+      return { data: response.data, error: null };
+    } catch (error) {
+      console.error('API Error:', error);
+      return { data: null, error: 'Request failed. Please try again.' };
+    }
+  },
 };
 
 export { BASE_URL };

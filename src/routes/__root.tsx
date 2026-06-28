@@ -176,6 +176,13 @@ function AppShell() {
     };
   }, [setOnline]);
 
+  const lang = useAppStore((s) => s.lang);
+  useEffect(() => {
+    api.i18n(lang).then(res => {
+       if (res.data) console.log("Loaded i18n strings for", lang);
+    });
+  }, [lang]);
+
   return (
     <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
       <main className="flex-1 pb-[72px]">

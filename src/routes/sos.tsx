@@ -66,10 +66,7 @@ function SOS() {
       setError("Couldn't create the link. Call 108 immediately for urgent help.");
     } else {
       const link =
-        res.data.link ??
-        (typeof (res.data as Record<string, unknown>).url === "string"
-          ? ((res.data as Record<string, unknown>).url as string)
-          : `https://maps.google.com/?q=${location.lat},${location.lng}`);
+        res.data.share_url ?? `https://maps.google.com/?q=${location.lat},${location.lng}`;
       setResult({ ...res.data, link });
     }
     setLoading(false);
@@ -83,9 +80,7 @@ function SOS() {
   };
 
   const whatsappHref = result
-    ? `https://wa.me/?text=${encodeURIComponent(
-        `🚨 EMERGENCY — I need help on the road.\nSeverity: ${SEVERITY_META[severity].label}\n${description}\nLocation: ${result.link}`,
-      )}`
+    ? `https://wa.me/?text=I need help! Track my location: ${encodeURIComponent(result.link)}`
     : "#";
 
   return (

@@ -8,12 +8,12 @@ interface GPSHookState {
   error: string | null;
 }
 
-// Default to central Gurugram (Haryana) so the app is usable before/without GPS.
+// Default to Panipat, Haryana (center of coverage area)
 const FALLBACK: GeoLocation = {
-  lat: 28.4595,
-  lng: 77.0266,
-  address: "Gurugram, Haryana",
-  pincode: "122001",
+  lat: 29.3909,
+  lng: 76.9635,
+  address: "Panipat, Haryana",
+  pincode: "132103",
 };
 
 async function reverseGeocode(lat: number, lng: number): Promise<string> {
@@ -45,7 +45,7 @@ export function useGPS(): GPSHookState {
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setState({ location: FALLBACK, loading: false, error: "GPS not supported" });
+      setState({ location: FALLBACK, loading: false, error: "Using approximate location. Enable GPS for accurate results." });
       setLocation(FALLBACK);
       return;
     }
@@ -78,7 +78,7 @@ export function useGPS(): GPSHookState {
       setState({
         location: FALLBACK,
         loading: false,
-        error: "Location unavailable",
+        error: "Using approximate location. Enable GPS for accurate results.",
       });
       setLocation(FALLBACK);
     };
