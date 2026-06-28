@@ -11,6 +11,10 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { BottomNav } from "../components/BottomNav";
+import { useGPS } from "../hooks/useGPS";
+import { useAppStore } from "../store/useAppStore";
+import { api } from "../services/api";
 
 function NotFoundComponent() {
   return (
@@ -76,17 +80,40 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
+      },
+      { title: "RoadSoS — Emergency Road Safety" },
+      {
+        name: "description",
+        content:
+          "Emergency road accident assistance for Haryana & Delhi. Find ambulances, hospitals, police and create instant SOS links.",
+      },
+      { name: "author", content: "RoadSoS" },
+      { name: "theme-color", content: "#0a0a0a" },
+      { property: "og:title", content: "RoadSoS — Emergency Road Safety" },
+      {
+        property: "og:description",
+        content:
+          "Help is one tap away. Emergency road assistance for Haryana & Delhi.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -118,8 +145,44 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AppShell />
     </QueryClientProvider>
+  );
+}
+
+function AppShell() {
+  // Mount GPS watcher once for the whole app.
+  useGPS();
+  const setOnline = useAppStore((s) => s.setOnline);
+
+  useEffect(() => {
+    let active = true;
+    const check = async () => {
+      const res = await api.health();
+      if (active) setOnline(!res.error);
+    };
+    check();
+    const id = setInterval(check, 30000);
+
+    const onNet = () => setOnline(navigator.onLine);
+    window.addEventListener("online", onNet);
+    window.addEventListener("offline", onNet);
+
+    return () => {
+      active = false;
+      clearInterval(id);
+      window.removeEventListener("online", onNet);
+      window.removeEventListener("offline", onNet);
+    };
+  }, [setOnline]);
+
+  return (
+    <div className="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
+      <main className="flex-1 pb-[72px]">
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+      </main>
+      <BottomNav />
+    </div>
   );
 }
