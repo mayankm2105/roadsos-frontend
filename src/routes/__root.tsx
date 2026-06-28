@@ -11,6 +11,10 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { BottomNav } from "../components/BottomNav";
+import { useGPS } from "../hooks/useGPS";
+import { useAppStore } from "../store/useAppStore";
+import { api } from "../services/api";
 
 function NotFoundComponent() {
   return (
