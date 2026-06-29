@@ -167,8 +167,8 @@ function Home() {
             </div>
           ) : services && services.length > 0 ? (
             <div className="space-y-2">
-              {services.slice(0, 4).map((s, i) => (
-                <ServiceCard key={s.id ?? i} service={{ ...s, id: s.id ?? String(i) }} />
+              {services.slice(0, 10).map((s, i) => (
+                <ServiceCard key={s.id ?? i} service={{ ...s, id: s.id ?? String(i), phone: s.phone || null }} />
               ))}
             </div>
           ) : (

@@ -7,6 +7,7 @@ import {
 } from "@/lib/roadsos";
 
 function getCallHref(phone: string | null | undefined, category: string): string {
+  console.log("getCallHref called:", { phone, category });
   if (phone && phone.trim() !== "") {
     return `tel:${phone.replace(/[\s\-]/g, "")}`;
   }

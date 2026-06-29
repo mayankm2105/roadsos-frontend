@@ -61,6 +61,7 @@ function Services() {
     let items = (data ?? []).map((s, i) => ({
       ...s,
       id: s.id ?? String(i),
+      phone: s.phone || null,
       category: (s.category ?? tab) as ServiceCategory,
     }));
     if (tab !== "all" && tab !== "hospital") {
@@ -131,7 +132,7 @@ function Services() {
 
         {isLoading ? (
           <div className="space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 10 }).map((_, i) => (
               <ServiceCardSkeleton key={i} />
             ))}
           </div>

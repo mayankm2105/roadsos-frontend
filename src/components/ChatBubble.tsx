@@ -57,7 +57,7 @@ export function ChatBubble({
 
       {!!message.services?.length && (
         <div className="mt-2 w-[82%] space-y-2">
-          {message.services.slice(0, 2).map((s) => (
+          {message.services.slice(0, 10).map((s) => (
             <div
               key={s.id}
               className="flex items-center justify-between rounded-lg border border-line bg-surface p-3"
